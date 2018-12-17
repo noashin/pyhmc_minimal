@@ -27,7 +27,7 @@ class HMC():
     def get_samples(self):
         return self.state_samps
 
-    def calc_acceptence_rate(self):
+    def get_acceptence_rate(self):
         return self.accepted / len(self.state_samps)
 
     def leapfrog(self, save_steps, *args):
@@ -56,28 +56,31 @@ class HMC():
 
     def HMC(self, *args):
         for i in range(self.m):
-            self.velocity_param.gen_init_value()
-            vel_val_old = self.velocity_param.get_value()
+            self.velocity_param.gen_init_value() # Sample a new value for the velocity
+            vel_val_old = self.velocity_param.get_value() # Store values from previous iteration
             state_val_old = self.state_param.get_value()
 
             self.leapfrog(False, *args)
 
-            prob = np.exp(- self.state_param.get_energy(*args) + self.state_param.get_energy_for_value(
-                state_val_old, *args) - self.velocity_param.get_energy() + self.velocity_param.get_energy_for_value(
-                vel_val_old))
+            # Acceptance probability
+            prob = np.exp(- self.state_param.get_energy(*args) + 
+                          self.state_param.get_energy_for_value(state_val_old, *args) - 
+                          self.velocity_param.get_energy() + 
+                          self.velocity_param.get_energy_for_value(vel_val_old))
 
             alpha = np.min((1, prob))
+
             self.alphas.append(alpha)
             self.all_state_samps.append(self.state_param.get_value())
             self.all_vel_samps.append(self.velocity_param.get_value())
 
             p = np.random.random()
 
-            if p > alpha:
-                # reject - set the state and velocity values to the previous
+            if p > alpha: # reject
+                # set the state and velocity values to the previous
                 self.state_param.set_value(state_val_old)
                 self.velocity_param.set_value(vel_val_old)
-            else:
+            else: # accept
                 self.accepted += 1
 
             self.state_samps.append(self.state_param.get_value())
