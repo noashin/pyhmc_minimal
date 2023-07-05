@@ -31,6 +31,13 @@ class HMC():
         return self.accepted / len(self.state_samps)
 
     def leapfrog(self, save_steps, *args):
+        """
+        This method implements leapfrog integration https://en.wikipedia.org/wiki/Leapfrog_integration
+        It changes self.state_param and self.velocity_param
+        :param save_steps: whether to save the leapfrog internal steps or not.
+        :param args: parameters needed for the calculation of the energy and its gradient.
+        :return:
+        """
 
         # Half a step
         tmp_vel = self.velocity_param.get_value() - self.delta / 2 * self.state_param.get_energy_grad(*args)
@@ -55,6 +62,11 @@ class HMC():
         self.velocity_param.set_value(- vel_val)
 
     def HMC(self, *args):
+        """
+        This method performs the HMC sampling https://en.wikipedia.org/wiki/Hamiltonian_Monte_Carlo
+        :param args: parameters needed for the calculation of the energy and its gradient
+        :return:
+        """
         for i in range(self.m):
             self.velocity_param.gen_init_value() # Sample a new value for the velocity
             vel_val_old = self.velocity_param.get_value() # Store values from previous iteration
